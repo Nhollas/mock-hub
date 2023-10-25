@@ -2,35 +2,32 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
 import { HelloWorld } from "./HelloWorld";
-import { Content } from "./Content";
 import { useState } from "react";
+import Content from "./Content";
 
 jest.mock("./Content.tsx", () => ({
-  Content: jest.fn(),
+  __esModule: true,
+  default: jest.fn(),
 }));
 
+const mockedContent = Content as jest.Mock;
+
 it("We can mock components mid test.", () => {
+  render(<HelloWorld />);
+
   // Initial content mock.
-  (Content as jest.Mock).mockImplementation(() => {
+  mockedContent.mockImplementation(() => {
     // Returning function here doesn't work..
     function MockContent() {
-      const [state, setState] = useState(1);
-      return (
-        <div>
-          <p>Mocked Content 1</p>
-          <button onClick={() => setState(2)}>Update State</button>
-          <p>Current State: {state}</p>
-        </div>
-      );
+      const [state] = useState(1);
+      return <p>Mocked Content {state}</p>;
     }
 
     // Must be returned like this...
     return <MockContent />;
   });
 
-  render(<HelloWorld />);
-
-  // Click the button to show the header.
+  // Click the button to show the header. (This will render the Content component)
   const button = screen.getByText("Show Header");
   fireEvent.click(button);
 
@@ -42,7 +39,16 @@ it("We can mock components mid test.", () => {
   fireEvent.click(hideButton);
 
   // Change the mock to return different content.
-  (Content as jest.Mock).mockImplementation(() => <div>Mocked Content 2</div>);
+  mockedContent.mockImplementation(() => {
+    // Returning function here doesn't work..
+    function MockContent() {
+      const [state] = useState(2);
+      return <p>Mocked Content {state}</p>;
+    }
+
+    // Must be returned like this...
+    return <MockContent />;
+  });
 
   const button2 = screen.getByText("Show Header");
 
