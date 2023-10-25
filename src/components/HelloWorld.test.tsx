@@ -3,6 +3,7 @@ import "@testing-library/jest-dom";
 
 import { HelloWorld } from "./HelloWorld";
 import { Content } from "./Content";
+import { useState } from "react";
 
 jest.mock("./Content.tsx", () => ({
   Content: jest.fn(),
@@ -10,7 +11,22 @@ jest.mock("./Content.tsx", () => ({
 
 it("We can mock components mid test.", () => {
   // Initial content mock.
-  (Content as jest.Mock).mockImplementation(() => <div>Mocked Content 1</div>);
+  (Content as jest.Mock).mockImplementation(() => {
+    // Returning function here doesn't work..
+    function MockContent() {
+      const [state, setState] = useState(1);
+      return (
+        <div>
+          <p>Mocked Content 1</p>
+          <button onClick={() => setState(2)}>Update State</button>
+          <p>Current State: {state}</p>
+        </div>
+      );
+    }
+
+    // Must be returned like this...
+    return <MockContent />;
+  });
 
   render(<HelloWorld />);
 
